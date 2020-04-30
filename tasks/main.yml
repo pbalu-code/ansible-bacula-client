@@ -70,4 +70,4 @@
     state: directory
     mode: "0770"
     owner: root
-    group: {% if postgres_group is defined %} {{ postgres_group }} {% esle %} root {% endif %}
+    group: "{% if postgres_group is defined %} {{ postgres_group }} {% esle %} root {% endif %}"
