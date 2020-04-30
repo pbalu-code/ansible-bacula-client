@@ -13,5 +13,6 @@ bacula_sql_dumps_folder: /var/bacula
 bacula_mysql_user: 'root'
 bacula_mysql_user_password: ''
 bacula_pgsql_user: postgres
+keep_backups_days: 5
 # postgres_group: postgres
 #

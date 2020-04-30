@@ -16,6 +16,6 @@ done
 
 echo "Removing old Mysql dumps"
 cd {{ bacula_sql_dumps_folder }}
-find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +5 -exec rm {} \;
+find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +{{ keep_backups_days }} -exec rm {} \;
 
 exit 0
