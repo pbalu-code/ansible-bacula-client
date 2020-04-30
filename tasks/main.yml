@@ -1,0 +1,73 @@
+---
+- include: "{{ ansible_os_family }}.yml"
+  when: ansible_os_family == "RedHat" | ansible_os_family == "Ubuntu"
+
+- name: Root cnf
+  blockinfile:
+    dest: /root/.my.cnf
+    block: |
+      [mysql]
+      user={{ bacula_db_user }}
+      password={{ bacula_db_password }}
+      [mysqldump]
+      user={{ bacula_db_user }}
+      password={{ bacula_db_password }}
+    state: present
+    create: yes
+    mode: '0600'
+
+
+- name: Set Bacula client conf
+  template:
+    src: bacula-fd.conf.j2
+    dest: /etc/bacula/bacula-fd.conf
+    owner: root
+    group: root
+    mode: '0640'
+
+
+- name: Make sure bacula service enabled and started
+  service:
+    name: bacula-fd.service
+    state: started
+    enabled: yes
+
+- name: Folder for SQL dump scripts
+  file:
+    path: "{{ bacula_scripts }}"
+    state: directory
+    mode: "0700"
+    owner: root
+    group: root
+
+- name: Place MySQLDump script
+  template:
+    src: mysql_backup.sh.j2
+    dest: "{{ bacula_scripts }}/mysql_backup.sh"
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Place PgSQLDump script
+  template:
+    src: postgresql_backup.sh.j2
+    dest: "{{ bacula_scripts }}/postgresql_backup.sh"
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Place SQLDump exclude list
+  template:
+    src: sqldbexclude.list.j2
+    dest: "{{ bacula_scripts }}/sqldbexclude.list"
+    owner: root
+    group: root
+    mode: '0664'
+
+- name: Folder for SQL dump
+  file:
+    path: "{{ bacula_sql_dumps_folder }}"
+    state: directory
+    mode: "0770"
+    owner: root
+    group: {% if postgres_group is defined %} {{ postgres_group }} {% esle %} root {% endif %}

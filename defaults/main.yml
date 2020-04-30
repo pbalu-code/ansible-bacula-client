@@ -1,0 +1,17 @@
+---
+bacula_server: 'bacula'
+bacula_client_pw: 'bacula'
+bacula_exclude_sql_db:
+  - information_schema
+  - mysql
+  - performance_schema
+  - demo
+  - template
+  - postgres
+bacula_scripts: /root/scripts
+bacula_sql_dumps_folder: /var/bacula
+bacula_mysql_user: 'root'
+bacula_mysql_user_password: ''
+bacula_pgsql_user: postgres
+# postgres_group: postgres
+#

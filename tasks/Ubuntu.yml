@@ -1,0 +1,5 @@
+---
+- name: Install Bacula client
+  apt:
+    name: bacula-client
+    state: present

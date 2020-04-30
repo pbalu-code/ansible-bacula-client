@@ -1,0 +1,21 @@
+#!/bin/bash
+USER=`whoami`
+echo "##################################################################"
+echo "The runner user is: $USER"
+date
+echo "##################################################################"
+readarray -t exclude_db < {{ bacula_scripts }}/sqldbexclude.list
+mysql_dbs=(`mysql --batch --skip-pager --skip-column-names --raw --execute='show databases;'`)
+
+for db in "${mysql_dbs[@]}"; do
+if [[ ! "${exclude_db[@]}" =~ "$db" ]]; then
+    echo "Mysql dump database: $db"
+    mysqldump -R $db | gzip > {{ bacula_sql_dumps_folder }}/$db-`date +%Y%m%d`.sql.gz
+fi
+done
+
+echo "Removing old Mysql dumps"
+cd {{ bacula_sql_dumps_folder }}
+find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +5 -exec rm {} \;
+
+exit 0

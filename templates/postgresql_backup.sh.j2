@@ -1,0 +1,20 @@
+#!/bin/bash
+USER=`whoami`
+echo "##################################################################"
+echo "The runner user is: $USER"
+date
+echo "##################################################################"
+readarray -t exclude_db <  {{ bacula_scripts }}/sqldbexclude.list
+psql_dbs=(`sudo -u {{ bacula_pgsql_user }} psql -l | awk '{ print $1 }' | grep -v -E 'List|Name|-|\||\('`)
+
+for db in "${psql_dbs[@]}"; do
+if [[ ! "${exclude_db[@]}" =~ "$db" ]]; then
+    echo "Pgsql dump database: $db"
+    sudo -u {{ bacula_pgsql_user }} pg_dump $db | gzip > {{ bacula_sql_dumps_folder }}/$db-`date +%Y%m%d`.sql.gz
+fi
+done
+
+echo "Removing old Pgsql dumps"
+cd {{ bacula_sql_dumps_folder }}
+find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +5 -exec rm {} \;
+exit 0
