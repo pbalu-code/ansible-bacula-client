@@ -37,7 +37,7 @@
   file:
     path: "{{ bacula_scripts }}"
     state: directory
-    mode: "0700"
+    mode: "0775"
     owner: root
     group: root
 
@@ -47,7 +47,7 @@
     dest: "{{ bacula_scripts }}/mysql_backup.sh"
     owner: root
     group: root
-    mode: '0700'
+    mode: '0770'
 
 - name: Place PgSQLDump script
   template:
@@ -55,7 +55,7 @@
     dest: "{{ bacula_scripts }}/postgresql_backup.sh"
     owner: root
     group: root
-    mode: '0700'
+    mode: '0770'
 
 - name: Place SQLDump exclude list
   template:

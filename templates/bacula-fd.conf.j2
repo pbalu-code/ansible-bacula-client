@@ -16,7 +16,7 @@
 #
 Director {
   Name = {{ bacula_server|default('bacula') }}-dir
-  Password = {{ bacula_client_pw|default('baculabacula') }}
+  Password = "{{ bacula_client_pw|default('baculabacula') }}"
 }
 
 #
@@ -25,7 +25,7 @@ Director {
 #
 Director {
   Name = {{ bacula_server }}-mon
-  Password = {{ bacula_client_pw }}
+  Password = "{{ bacula_client_pw }}"
   Monitor = yes
 }
 
