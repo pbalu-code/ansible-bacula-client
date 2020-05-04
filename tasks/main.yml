@@ -1,3 +1,4 @@
+#bacula-client/main.yml
 ---
 - include: "{{ ansible_os_family }}.yml"
   when: ansible_os_family == "RedHat" or ansible_os_family == "Ubuntu"
@@ -72,3 +73,25 @@
     mode: "0770"
     owner: root
     group: "{% if postgres_group is defined %}{{ postgres_group }}{% else %}root{% endif %}"
+
+- name: Selinux
+  block:
+  - name: "Allow rw for bacula in {{ bacula_sql_dumps_folder }}"
+    sefcontext:
+      target: "{{ bacula_sql_dumps_folder }}/(/.*)?"
+      setype: bacula_store_t
+      state: present
+    register: selinux_set
+  - name: Apply new SELinux file context to filesystem
+    command: "restorecon -irv {{ bacula_sql_dumps_folder }}"
+    when: selinux_set.changed
+  - name: "Allow exec for bacula in {{ bacula_scripts }}"
+    sefcontext:
+      target: "{{ bacula_scripts }}/(/.*)?"
+      setype: bacula_exec_t
+      state: present
+    register: selinux_set
+  - name: Apply new SELinux file context to filesystem
+    command: "restorecon -irv {{ bacula_scripts }}"
+    when: selinux_set.changed
+  when: ansible_selinux.status == "enabled"
