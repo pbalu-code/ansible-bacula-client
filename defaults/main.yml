@@ -8,11 +8,14 @@ bacula_exclude_sql_db:
   - demo
   - template
   - postgres
-bacula_scripts: /root/scripts
+bacula_scripts: /usr/local/sbin/bacula
 bacula_sql_dumps_folder: /var/bacula
 bacula_mysql_user: 'root'
 bacula_mysql_user_password: ''
 bacula_pgsql_user: postgres
-keep_backups_days: 5
+bacula_keep_backups_days: 5
+bacula_restore_selinux: False
+bacula_fd_port: 9102
+bacula_open_firewall: true
 # postgres_group: postgres
 #

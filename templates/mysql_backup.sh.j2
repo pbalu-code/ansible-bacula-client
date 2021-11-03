@@ -10,12 +10,13 @@ mysql_dbs=(`mysql --batch --skip-pager --skip-column-names --raw --execute='show
 for db in "${mysql_dbs[@]}"; do
 if [[ ! "${exclude_db[@]}" =~ "$db" ]]; then
     echo "Mysql dump database: $db"
-    mysqldump -R $db | gzip > {{ bacula_sql_dumps_folder }}/$db-`date +%Y%m%d`.sql.gz
+    mysqldump -R $db --single-transaction -q | gzip > {{ bacula_sql_dumps_folder }}/$db-`date +%Y%m%d`.sql.gz
+    echo "Finish at: `date`"
 fi
 done
 
 echo "Removing old Mysql dumps"
 cd {{ bacula_sql_dumps_folder }}
-find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +{{ keep_backups_days }} -exec rm {} \;
+find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +{{ bacula_keep_backups_days }} -exec rm {} \;
 
 exit 0

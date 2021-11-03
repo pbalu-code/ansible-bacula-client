@@ -1,7 +1,18 @@
+#bacula-client/main.yml
 ---
+- debug:
+    var: ansible_os_family
+
+- name: Load a variable file based on the OS type
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution }}.yml"
+    - "{{ ansible_os_family }}.yml"
+
 - include: "{{ ansible_os_family }}.yml"
-  when: ansible_os_family == "RedHat" or ansible_os_family == "Ubuntu"
-  failed_when: not ansible_os_family == "RedHat" or not ansible_os_family == "Ubuntu"
+  when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
 
 - name: Root cnf
   blockinfile:
@@ -16,7 +27,6 @@
     state: present
     create: yes
     mode: '0600'
-
 
 - name: Set Bacula client conf
   template:
@@ -37,9 +47,11 @@
   file:
     path: "{{ bacula_scripts }}"
     state: directory
-    mode: "0700"
+    mode: "0775"
     owner: root
     group: root
+    seuser: "{% if ansible_selinux.status == 'enabled' %}system_u{% else %}omit{% endif %}"
+    setype: "{% if ansible_selinux.status == 'enabled' %}bacula_unconfined_script_exec_t{% else %}omit{% endif %}"
 
 - name: Place MySQLDump script
   template:
@@ -47,7 +59,9 @@
     dest: "{{ bacula_scripts }}/mysql_backup.sh"
     owner: root
     group: root
-    mode: '0700'
+    mode: '0770'
+    seuser: "{% if ansible_selinux.status == 'enabled' %}system_u{% else %}omit{% endif %}"
+    setype: "{% if ansible_selinux.status == 'enabled' %}bacula_unconfined_script_exec_t{% else %}omit{% endif %}"
 
 - name: Place PgSQLDump script
   template:
@@ -55,7 +69,9 @@
     dest: "{{ bacula_scripts }}/postgresql_backup.sh"
     owner: root
     group: root
-    mode: '0700'
+    mode: '0770'
+    seuser: "{% if ansible_selinux.status == 'enabled' %}system_u{% else %}omit{% endif %}"
+    setype: "{% if ansible_selinux.status == 'enabled' %}bacula_unconfined_script_exec_t{% else %}omit{% endif %}"
 
 - name: Place SQLDump exclude list
   template:
@@ -64,6 +80,8 @@
     owner: root
     group: root
     mode: '0664'
+    seuser: "{% if ansible_selinux.status == 'enabled' %}system_u{% else %}omit{% endif %}"
+    setype: "{% if ansible_selinux.status == 'enabled' %}bacula_unconfined_script_exec_t{% else %}omit{% endif %}"
 
 - name: Folder for SQL dump
   file:
@@ -72,3 +90,27 @@
     mode: "0770"
     owner: root
     group: "{% if postgres_group is defined %}{{ postgres_group }}{% else %}root{% endif %}"
+    seuser: "{% if ansible_selinux.status == 'enabled' %}system_u{% else %}omit{% endif %}"
+    setype: "{% if ansible_selinux.status == 'enabled' %}bacula_store_t{% else %}omit{% endif %}"
+
+- name: Selinux
+  block:
+  - name: "Allow rw for bacula in {{ bacula_sql_dumps_folder }}"
+    sefcontext:
+      target: "{{ bacula_sql_dumps_folder }}(/.*)?"
+      setype: bacula_store_t
+      state: present
+    register: selinux_set
+  - name: Apply new SELinux file context to filesystem
+    command: "restorecon -irv {{ bacula_sql_dumps_folder }}"
+    when: selinux_set.changed
+  - name: "Allow exec for bacula in {{ bacula_scripts }}"
+    sefcontext:
+      target: "{{ bacula_scripts }}(/.*)?"
+      setype: bacula_unconfined_script_exec_t
+      state: present
+    register: selinux_set
+  - name: Apply new SELinux file context to filesystem
+    command: "restorecon -irv {{ bacula_scripts }}"
+    when: selinux_set.changed
+  when: bacula_restore_selinux == True

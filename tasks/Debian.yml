@@ -1,0 +1,13 @@
+---
+- name: Install Bacula client
+  apt:
+    name: bacula-client
+    state: present
+
+- name: Open port on firewall (UFW) for bacula
+  community.general.ufw:
+    rule: allow
+    port: "{{ bacula_fd_port }}"
+    src: "{{ bacula_server_ip | default(omit) }}"
+    proto: tcp
+  when: bacula_open_firewall

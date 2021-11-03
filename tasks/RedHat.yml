@@ -2,3 +2,12 @@
   yum:
     name: bacula-client
     state: present
+
+- name: Open port on firewall (firewalld) for bacula
+  ansible.posix.firewalld:
+    port: "{{ bacula_fd_port }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: yes
+    source: "{{ bacula_server_ip is defined | ternary(bacula_server_ip + '/24', omit) }}"
+  when: bacula_open_firewall

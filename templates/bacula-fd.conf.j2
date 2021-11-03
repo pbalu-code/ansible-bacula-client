@@ -16,7 +16,7 @@
 #
 Director {
   Name = {{ bacula_server|default('bacula') }}-dir
-  Password = {{ bacula_client_pw|default('baculabacula') }}
+  Password = "{{ bacula_client_pw|default('baculabacula') }}"
 }
 
 #
@@ -25,7 +25,7 @@ Director {
 #
 Director {
   Name = {{ bacula_server }}-mon
-  Password = {{ bacula_client_pw }}
+  Password = "{{ bacula_client_pw }}"
   Monitor = yes
 }
 
@@ -34,11 +34,11 @@ Director {
 #
 FileDaemon {                          # this is me
   Name = bacula-fd
-  FDport = 9102                  # where we listen for the director
+  FDport = {{ bacula_fd_port }}                  # where we listen for the director
   WorkingDirectory = /var/spool/bacula
   Pid Directory = /var/run
   Maximum Concurrent Jobs = 20
-  Plugin Directory = /usr/lib64/bacula
+  Plugin Directory = {{ bacula_plugins_path }}
 }
 
 # Send all messages except skipped files back to Director

@@ -16,5 +16,5 @@ done
 
 echo "Removing old Pgsql dumps"
 cd {{ bacula_sql_dumps_folder }}
-find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +{{ keep_backups_days }} -exec rm {} \;
+find {{ bacula_sql_dumps_folder }}/*.sql.gz -ctime +{{ bacula_keep_backups_days }} -exec rm {} \;
 exit 0
